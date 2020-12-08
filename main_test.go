@@ -13,8 +13,19 @@ func TestGORM(t *testing.T) {
 
 	DB.Create(&jinzhu)
 
-	query := User{Languages: []Language{{Code: "JA"}}}
-	var user User
+	var users []User
 
-	DB.Preload("Languages").Where(&query).Find(&user)
+	// ↓本当はこんなことがしたい
+	// query := User{Languages: []Language{{Code: "JA"}}}
+	// DB.Preload("Languages").Where(&query).Find(&users)
+
+	DB.
+		Table("users").
+		Joins("left join user_speaks on user_speaks.user_id = users.id").
+		Where("user_speaks.language_code = ?", "JA").
+		Scan(&users)
+
+	if users[0].Name != jinzhu.Name {
+		t.Errorf("failed")
+	}
 }
